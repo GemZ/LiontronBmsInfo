@@ -8,7 +8,6 @@
 # Sometimes there are no values "Characteristic value was written successfully" : dont know why
 # Sometimes the connections does not work without any error : there might be another client connected
 # "Device or resource busy" : there might be still an open connection on the client, restart your bluetooth if you can't find it
-# You have to change the code if you have other than 4 cells
 #
 # request bytes: header (two bytes), command (two bytes), checksum (two bytes), EOR (one byte b'77')
 # response bytes: header (two bytes), lenght in bytes (two bytes), data, checksum (two bytes), EOR (one byte b'77')
@@ -180,11 +179,12 @@ if (response.endswith(b'w')) and (response.startswith(b'\xdd\x03')):
         rawdat['ProtectStateText']="MOSSoftwareLockIn";
 
 if (response2.endswith(b'w')) and (response2.startswith(b'\xdd\x04')):
-    response2=response2[4:]
-    rawdat['Vcell1']=int.from_bytes(response2[0:2], byteorder = 'big',signed=True)/1000.0
-    rawdat['Vcell2']=int.from_bytes(response2[2:4], byteorder = 'big',signed=True)/1000.0
-    rawdat['Vcell3']=int.from_bytes(response2[4:6], byteorder = 'big',signed=True)/1000.0
-    rawdat['Vcell4']=int.from_bytes(response2[6:8], byteorder = 'big',signed=True)/1000.0
+    response2=response2[4:-3]
+    cellcount=len(response2)//2
+    if args.v==2: print ("Detected Cellcount: ",cellcount)
+    for cell in range(cellcount):
+        #print ("Cell:",cell+1,"from byte",cell*2,"to",cell*2+2)
+        rawdat['Vcell'+str(cell+1)]=int.from_bytes(response2[cell*2:cell*2+2], byteorder = 'big',signed=True)/1000.0
 
 if (response3.endswith(b'w')) and (response3.startswith(b'\xdd\x05')):
     response3=response3[4:-3]
